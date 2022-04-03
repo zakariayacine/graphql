@@ -1,0 +1,104 @@
+"A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
+scalar DateTime
+    @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+"Indicates what fields are available at the top level of a query operation."
+type Query {
+    "Find a single user by an identifying attribute."
+    user(
+        "Search by primary key."
+        id: ID @eq @rules(apply: ["prohibits:email", "required_without:email"])
+
+        "Search by email address."
+        email: String
+            @eq
+            @rules(apply: ["prohibits:id", "required_without:id", "email"])
+    ): User @find
+    Items: [Item] @paginate(defaultCount: 10)
+    "List multiple users."
+    users(
+        "Filters by name. Accepts SQL LIKE wildcards `%` and `_`."
+        name: String @where(operator: "like")
+    ): [User!]! @paginate(defaultCount: 10)
+    LatestProduct: [Product!]
+}
+"Account of a person who utilizes this application."
+type User {
+    "Unique primary key."
+    id: ID!
+
+    "Non-unique name."
+    name: String!
+
+    "Unique email address."
+    email: String!
+
+    "When the email was verified."
+    email_verified_at: DateTime
+
+    "When the account was created."
+    created_at: DateTime!
+
+    "When the account was last updated."
+
+    updated_at: DateTime!
+
+    product: [Product] @hasMany
+    orders:[Order] @hasMany
+}
+
+type Mutation {
+    createOrder(items: CreateOrder): Order!
+        @field(resolver: "App\\GraphQL\\Mutations\\OrderMutation@create")
+    updateOrder(item: CartItemUpdate): Order!
+        @field(resolver: "App\\GraphQL\\Mutations\\OrderMutation@update")
+    deleteOrderItem(item: CartItemDelete): Order!
+        @field(resolver: "App\\GraphQL\\Mutations\\OrderMutation@delete")
+}
+
+"order in db"
+type Order {
+    id: Int
+    price: Int
+    deliveryPrice: Int @rename(attribute: "delivery_price")
+    totalPrice: Int @rename(attribute: "total_price")
+    items: [Item!]! @hasMany
+}
+
+"items is the return products selected bay the user"
+type Item {
+    quantity: Int!
+    id: Int!
+    product: Product
+}
+
+"product fileds for item"
+type Product {
+    name: String
+    id: Int
+    price: Int
+}
+
+"Iput to create new Order"
+input CreateOrder {
+    userId: Int
+    deliveryPrice: Int
+    cartProduct: [CartProduct]
+}
+
+"cart product array for create order"
+input CartProduct @validator {
+    productId: Int @rename(attribute: "product_id")
+    quantity: Int!
+}
+
+"cart product array for update order"
+input CartItemUpdate @validator {
+    itemId: Int! @rename(attribute: "item_id")
+    quantity: Int!
+}
+
+"delete product item"
+input CartItemDelete @validator {
+    itemId: Int! @rename(attribute: "item_id")
+}

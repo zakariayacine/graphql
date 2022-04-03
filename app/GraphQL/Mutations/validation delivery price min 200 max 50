@@ -1,0 +1,31 @@
+validation delivery price min 200 max 500
+quantity max stock of product
+kamelcase
+use observers to different calculations
+
+mutation {
+  createOrder(
+    items: {
+      userId: 5
+      deliveryPrice: 200
+      cartProduct: [
+        { productId: 1, quantity: 20 }
+        { productId: 5, quantity: 10 }
+      ]
+    }
+  ) {
+    price
+    deliveryPrice
+    totalPrice
+    items {
+      quantity
+      product {
+        name
+        id
+      }
+    }
+  }
+}
+
+use observers to different calculations
+
